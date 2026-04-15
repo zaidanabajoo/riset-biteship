@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+abj_access_biteship_rate_wizard,abj.biteship.rate.wizard.access,model_abj_biteship_rate_wizard,base.group_user,1,1,1,1
+abj_access_biteship_rate_line,abj.biteship.rate.line.access,model_abj_biteship_rate_line,base.group_user,1,1,1,1

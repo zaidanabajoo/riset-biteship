@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         RES CONFIG SETTINGS – Biteship Configuration
+         ════════════════════════════════════════════════════════════════════ -->
+    <record id="abj_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.abj.biteship</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//app[@name='stock']" position="inside">
+
+                <h2>Integrasi Logistik: Biteship</h2>
+
+                <!-- ── API Credentials ── -->
+                <block title="API Biteship" name="abj_biteship_api">
+                    <setting string="API Key Biteship"
+                             help="Masukkan API Key dari dashboard Biteship. Format: biteship_live.xxx atau biteship_test.xxx">
+                        <field name="abj_biteship_api_key" password="True"/>
+                    </setting>
+                    <setting string="Base URL API"
+                             help="Endpoint utama API Biteship. Default: https://api.biteship.com">
+                        <field name="abj_biteship_base_url"
+                               placeholder="https://api.biteship.com"/>
+                    </setting>
+                    <setting string="Kurir Default"
+                             help="Daftar kode kurir yang akan diambil saat cek ongkir, pisahkan dengan koma.">
+                        <field name="abj_biteship_default_couriers"
+                               placeholder="jne,sicepat,anteraja,tiki,ninja"/>
+                    </setting>
+                </block>
+
+                <!-- ── Sender Information ── -->
+                <block title="Data Pengirim (Shipper)" name="abj_biteship_sender">
+                    <setting string="Informasi Pengirim"
+                             help="Data pengirim yang akan dikirim ke Biteship untuk pembuatan order.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="abj_biteship_sender_name" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_sender_name" class="col-lg-8 oe_inline"
+                                       placeholder="Nama kontak pengirim"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="abj_biteship_sender_phone" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_sender_phone" class="col-lg-8 oe_inline"
+                                       placeholder="08xxxxxxxxxx"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="abj_biteship_sender_email" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_sender_email" class="col-lg-8 oe_inline"
+                                       placeholder="toko@email.com"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="abj_biteship_sender_org" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_sender_org" class="col-lg-8 oe_inline"
+                                       placeholder="Nama Toko / Organisasi"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <!-- ── Origin Address ── -->
+                <block title="Alamat Asal (Origin)" name="abj_biteship_origin">
+                    <setting string="Alamat Gudang / Toko"
+                             help="Alamat asal pengiriman. Digunakan untuk kalkulasi ongkir dan pembuatan order.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="abj_biteship_origin_address" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_origin_address" class="col-lg-8 oe_inline"
+                                       placeholder="Jl. Gudang No. 1, Kelurahan, Kecamatan"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="abj_biteship_origin_postal_code" class="col-lg-4 o_light_label"/>
+                                <field name="abj_biteship_origin_postal_code" class="col-lg-8 oe_inline"
+                                       placeholder="12440"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <!-- ── Webhook Info ── -->
+                <block title="Webhook" name="abj_biteship_webhook">
+                    <setting string="URL Webhook Tracking"
+                             help="Daftarkan URL ini di dashboard Biteship agar status pengiriman terupdate otomatis.">
+                        <div class="content-group">
+                            <div class="mt16 alert alert-info" role="alert">
+                                <div><i class="fa fa-info-circle"/> <b>URL Webhook:</b></div>
+                                <code class="ms-1">{your_odoo_url}/abj/biteship/webhook</code>
+                                <div class="mt-2 text-muted">
+                                    <small>
+                                        Daftarkan URL di atas ke menu Webhook di
+                                        <a href="https://dashboard.biteship.com" target="_blank">dashboard Biteship</a>.<br/>
+                                        Aktifkan event: <b>order.status</b>, <b>order.price</b>, <b>order.waybill_id</b>.<br/>
+                                        Pastikan domain Odoo Anda dapat diakses secara publik (HTTPS).
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

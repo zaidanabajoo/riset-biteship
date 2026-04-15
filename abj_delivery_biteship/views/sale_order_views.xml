@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SALE ORDER – Inherit Form View (Biteship Shipping Fields)
+         ════════════════════════════════════════════════════════════════════ -->
+    <record id="abj_sale_order_view_form" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.abj.biteship</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- ── Button: Get Shipping Rates (di header) ── -->
+            <xpath expr="//header" position="inside">
+                <button name="action_abj_get_biteship_rates"
+                        string="🚚 Get Shipping Rates"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'draft'"
+                        groups="sales_team.group_sale_salesman"/>
+            </xpath>
+
+            <!-- ── Shipping Info Fields (setelah group utama) ── -->
+            <xpath expr="//page[@name='order_lines']" position="after">
+                <page string="📦 Pengiriman (Biteship)" name="abj_biteship_shipping">
+                    <group>
+                        <group string="Tarif Terpilih">
+                            <field name="abj_selected_courier" readonly="1"/>
+                            <field name="abj_selected_service_name" readonly="1"/>
+                            <field name="abj_selected_service" readonly="1"
+                                   string="Kode Layanan"/>
+                            <field name="abj_selected_courier_code" readonly="1"
+                                   string="Kode Kurir"/>
+                        </group>
+                        <group string="Biaya &amp; Estimasi">
+                            <field name="abj_shipping_cost" readonly="1"
+                                   widget="monetary"/>
+                            <field name="abj_shipping_duration" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

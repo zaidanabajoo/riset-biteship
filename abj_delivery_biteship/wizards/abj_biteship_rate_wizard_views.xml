@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         WIZARD: Pilih Tarif Biteship – Form View
+         ════════════════════════════════════════════════════════════════════ -->
+    <record id="abj_biteship_rate_wizard_view_form" model="ir.ui.view">
+        <field name="name">abj.biteship.rate.wizard.form</field>
+        <field name="model">abj.biteship.rate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="🚚 Pilih Tarif Pengiriman Biteship">
+                <div class="alert alert-info mb-3" role="alert">
+                    <i class="fa fa-truck"/> Pilih satu tarif pengiriman, lalu klik
+                    <b>Pilih Tarif</b>. Tarif diurutkan dari termurah.
+                </div>
+                <field name="abj_order_id" invisible="1"/>
+                <field name="abj_line_ids" nolabel="1">
+                    <list editable="bottom" create="false" delete="false"
+                          decoration-success="abj_selected == True"
+                          default_order="abj_price asc">
+                        <field name="abj_selected" string="✓" widget="boolean"/>
+                        <field name="abj_courier_name" string="Kurir"/>
+                        <field name="abj_courier_code" string="Kode" optional="hide"/>
+                        <field name="abj_service_name" string="Layanan"/>
+                        <field name="abj_service_code" string="Kode Svc" optional="hide"/>
+                        <field name="abj_price" string="Harga (Rp)"/>
+                        <field name="abj_duration" string="Estimasi"/>
+                        <field name="abj_description" string="Deskripsi" optional="show"/>
+                        <field name="abj_insurance_fee" string="Asuransi" optional="hide"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_abj_select_rate"
+                            string="✅ Pilih Tarif"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_abj_select_cheapest"
+                            string="💰 Termurah"
+                            type="object"
+                            class="btn-secondary"
+                            help="Otomatis pilih tarif termurah"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

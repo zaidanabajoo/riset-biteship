@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         DELIVERY CARRIER – Inherit Form View (Biteship Fields)
+         ════════════════════════════════════════════════════════════════════ -->
+    <record id="abj_delivery_carrier_view_form" model="ir.ui.view">
+        <field name="name">delivery.carrier.form.inherit.abj.biteship</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//group[1]" position="after">
+                <group invisible="delivery_type != 'abj_biteship'">
+                    <group string="Pengaturan Biteship">
+                        <field name="abj_biteship_courier_code"
+                               string="Kode Kurir"
+                               placeholder="Contoh: jne, sicepat, anteraja"
+                               help="Kode kurir Biteship. Terisi otomatis dari wizard tarif, atau isi manual."/>
+                        <field name="abj_biteship_service_type"
+                               string="Tipe Layanan"
+                               placeholder="Contoh: reg, oke, yes, best"
+                               help="Kode tipe layanan. Terisi otomatis dari wizard tarif."/>
+                    </group>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
