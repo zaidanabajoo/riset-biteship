@@ -14,7 +14,7 @@
             <field name="sequence">10</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
         <!-- 2. JNE YES (Next Day) -->
@@ -29,7 +29,7 @@
             <field name="sequence">11</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
         <!-- 3. SiCepat Reguler -->
@@ -44,7 +44,7 @@
             <field name="sequence">12</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
         <!-- 4. SiCepat BEST -->
@@ -59,7 +59,7 @@
             <field name="sequence">13</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
         <!-- 5. AnterAja Reguler -->
@@ -74,7 +74,7 @@
             <field name="sequence">14</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
         <!-- 6. J&T EZ -->
@@ -89,7 +89,7 @@
             <field name="sequence">15</field>
             <field name="margin">0</field>
             <field name="company_id" eval="False"/>
-            <field name="integration_level">rate_and_shipment</field>
+            <field name="integration_level">rate</field>
         </record>
 
     </data>
