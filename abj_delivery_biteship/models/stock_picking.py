@@ -351,7 +351,7 @@ class StockPicking(models.Model):
             courier_type = sale.abj_selected_service or 'reg'
         elif self.carrier_id and self.carrier_id.delivery_type == 'abj_biteship':
             courier_company = self.carrier_id.abj_biteship_courier_code or ''
-            courier_type = self.carrier_id.abj_biteship_service_type or 'reg'
+            courier_type = self.carrier_id._abj_get_actual_service_code() or 'reg'
 
         if not courier_company:
             raise UserError(
