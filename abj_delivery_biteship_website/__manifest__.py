@@ -17,7 +17,6 @@
     'depends': [
         'abj_delivery_biteship',
         'website_sale',
-        'website_sale_delivery',
     ],
     'data': [
         'data/abj_carrier_data.xml',
