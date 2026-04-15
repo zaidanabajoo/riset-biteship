@@ -379,7 +379,7 @@ class StockPicking(models.Model):
             'origin_postal_code': int(config.get('origin_postal_code', 0)),
             # Destination
             'destination_contact_name': partner.name,
-            'destination_contact_phone': partner.phone or partner.mobile or '',
+            'destination_contact_phone': partner.phone or '',
             'destination_contact_email': partner.email or '',
             'destination_address': dest_address,
             'destination_postal_code': int(partner.zip or 0),
