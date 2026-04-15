@@ -44,7 +44,7 @@ ABJ_BITESHIP_SERVICE_TYPES = [
     ('same_day', 'Same Day'),
     ('instant_car', 'Instant Car'),
     ('instant_bike', 'Instant Bike'),
-    ('SAME_DAY', 'Same Day (Dash Express)'),
+    ('dash_same_day', 'Same Day (Dash Express)'),
     ('sds', 'Same Day Service (SDS)'),
     ('q9_same_day', 'Q9 Same Day (POS)'),
     # ── Regular / Standard ──
