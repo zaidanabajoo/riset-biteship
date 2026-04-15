@@ -8,6 +8,9 @@ Receives POST webhooks from Biteship for:
 - order.waybill_id → Waybill/AWB number updates
 
 Endpoint: POST /abj/biteship/webhook
+
+Phase 1: Lenient mode — accepts anything, returns "ok".
+Phase 2: Full processing with idempotent updates.
 """
 import json
 import logging
@@ -22,109 +25,88 @@ class AbjBiteshipWebhook(http.Controller):
 
     @http.route(
         '/abj/biteship/webhook',
-        type='json',
+        type='http',
         auth='public',
-        methods=['POST'],
+        methods=['GET', 'POST'],
         csrf=False,
     )
-    def abj_receive_webhook(self, **post):
+    def abj_biteship_webhook(self, **kwargs):
         """
         Main webhook endpoint for Biteship events.
+        Uses type='http' (NOT type='json') for maximum compatibility.
+        Biteship may send empty body during webhook verification.
 
-        Handles 3 event types:
-        1. order.status  → Update delivery status on stock.picking
-        2. order.price   → Update shipping cost on stock.picking
-        3. order.waybill_id → Update waybill/tracking number
-
-        Webhook payload examples from Biteship docs:
-
-        order.status:
-        {
-            "event": "order.status",
-            "courier_tracking_id": "XYZ-123-PQS",
-            "courier_waybill_id": "SKS-XXXXX",
-            "courier_company": "JNE",
-            "courier_type": "REG",
-            "courier_driver_name": "...",
-            "courier_driver_phone": "...",
-            "order_id": "5dd6da88f43bd430ecd5aa2e",
-            "order_price": 100000,
-            "status": "confirmed"
-        }
-
-        order.price:
-        {
-            "event": "order.price",
-            "order_id": "...",
-            "courier_tracking_id": "...",
-            "courier_waybill_id": "...",
-            "price": 100000,
-            "shippment_fee": 10000,
-            "status": "picked"
-        }
-
-        order.waybill_id:
-        {
-            "event": "order.waybill_id",
-            "order_id": "...",
-            "courier_tracking_id": "...",
-            "courier_waybill_id": "abc-1234",
-            "status": "picked"
-        }
+        Returns plain "ok" to satisfy Biteship handshake.
         """
+        # ── Phase 1: Safe payload parsing ──
         try:
-            payload = request.jsonrequest
-            _logger.info(
-                "ABJ_BITESHIP WEBHOOK RECEIVED: %s",
-                json.dumps(payload, default=str),
-            )
-        except Exception as e:
-            _logger.error("ABJ_BITESHIP WEBHOOK: Failed to parse payload: %s", str(e))
-            return {'status': 'error', 'message': 'Invalid JSON payload'}
-
-        event = payload.get('event', '')
-        order_id = payload.get('order_id', '')
-
-        if not order_id:
-            _logger.warning("ABJ_BITESHIP WEBHOOK: Missing order_id, ignoring.")
-            return {'status': 'ignored', 'message': 'Missing order_id'}
-
-        # ── Find the related picking ──
-        PickingModel = request.env['stock.picking'].sudo()
-        picking = PickingModel.search(
-            [('abj_shipment_id', '=', order_id)], limit=1,
-        )
-
-        if not picking:
-            _logger.warning(
-                "ABJ_BITESHIP WEBHOOK: No picking found for order_id=%s",
-                order_id,
-            )
-            return {'status': 'ignored', 'message': 'No matching picking found'}
-
-        # ── Route by event type ──
-        if event == 'order.status':
-            self._abj_handle_status_event(picking, payload)
-        elif event == 'order.price':
-            self._abj_handle_price_event(picking, payload)
-        elif event == 'order.waybill_id':
-            self._abj_handle_waybill_event(picking, payload)
-        else:
-            # Unknown event — still try to process generically
-            _logger.info(
-                "ABJ_BITESHIP WEBHOOK: Unknown event '%s', processing generically.",
-                event,
-            )
-            self._abj_handle_status_event(picking, payload)
+            raw_body = request.httprequest.get_data(as_text=True)
+            payload = json.loads(raw_body) if raw_body else {}
+        except Exception:
+            payload = {}
 
         _logger.info(
-            "ABJ_BITESHIP WEBHOOK: Processed event=%s for picking=%s (order_id=%s)",
-            event, picking.name, order_id,
+            "ABJ_BITESHIP WEBHOOK RECEIVED: %s",
+            json.dumps(payload, default=str) if payload else '(empty)',
         )
 
-        return {'status': 'success', 'picking': picking.name}
+        # ── If empty payload (Biteship verification handshake) → just return ok ──
+        if not payload:
+            return "ok"
 
-    # ── Event Handlers ───────────────────────────────────────────────────
+        # ── Phase 2: Process the event ──
+        try:
+            event = payload.get('event', '')
+            order_id = payload.get('order_id', '')
+
+            if not order_id:
+                _logger.warning("ABJ_BITESHIP WEBHOOK: Missing order_id, ignoring.")
+                return "ok"
+
+            # ── Find the related picking ──
+            PickingModel = request.env['stock.picking'].sudo()
+            picking = PickingModel.search(
+                [('abj_shipment_id', '=', order_id)], limit=1,
+            )
+
+            if not picking:
+                _logger.warning(
+                    "ABJ_BITESHIP WEBHOOK: No picking found for order_id=%s",
+                    order_id,
+                )
+                return "ok"
+
+            # ── Route by event type ──
+            if event == 'order.status':
+                self._abj_handle_status_event(picking, payload)
+            elif event == 'order.price':
+                self._abj_handle_price_event(picking, payload)
+            elif event == 'order.waybill_id':
+                self._abj_handle_waybill_event(picking, payload)
+            else:
+                _logger.info(
+                    "ABJ_BITESHIP WEBHOOK: Unknown event '%s', processing generically.",
+                    event,
+                )
+                self._abj_handle_status_event(picking, payload)
+
+            _logger.info(
+                "ABJ_BITESHIP WEBHOOK: Processed event=%s for picking=%s (order_id=%s)",
+                event, picking.name, order_id,
+            )
+
+        except Exception as e:
+            # ⚠️ NEVER raise — always return "ok" to Biteship
+            _logger.error(
+                "ABJ_BITESHIP WEBHOOK: Error processing payload: %s",
+                str(e), exc_info=True,
+            )
+
+        return "ok"
+
+    # ══════════════════════════════════════════════════════════════════════
+    # EVENT HANDLERS
+    # ══════════════════════════════════════════════════════════════════════
 
     def _abj_handle_status_event(self, picking, payload):
         """Handle order.status webhook event."""
