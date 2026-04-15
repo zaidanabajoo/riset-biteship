@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+from psycopg2 import IntegrityError
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
@@ -20,8 +21,9 @@ class DeliveryCarrier(models.Model):
 
     def abj_biteship_rate_shipment(self, order):
         """
-        Website-optimized rate_shipment with caching.
-        Prevents multiple API calls when Odoo loads multiple carriers.
+        Website-optimized rate_shipment with dual-layer caching.
+        Level 1: Request-level memory cache (prevents redundant DB/API hits in one page load)
+        Level 2: DB-level persistent cache (ir.config_parameter)
         """
         self.ensure_one()
         
@@ -37,20 +39,33 @@ class DeliveryCarrier(models.Model):
             }
 
         # ── 2. Build Cache Key ──
-        # Include ZIP codes, weight, and total amount to ensure rate accuracy
         cache_key = self._abj_biteship_build_cache_key(order)
+
+        # ── 3. Level 1 Cache: Memory (Per Request) ──
+        # Since Odoo calls rate_shipment sequentially for each carrier in one request,
+        # we store the first result in self.env to share it immediately.
+        if not hasattr(self.env, 'abj_biteship_req_cache'):
+            # Using a dictionary to store multiple orders/keys if needed in one request
+            self.env.abj_biteship_req_cache = {}
         
-        # ── 3. Try Cache ──
-        cached_data = self._abj_get_biteship_cache(cache_key)
-        
-        if cached_data:
-            _logger.debug("ABJ_BITESHIP: Cache HIT for order %s (Carrier: %s)", order.name, self.name)
-            pricing = cached_data
+        if cache_key in self.env.abj_biteship_req_cache:
+            _logger.debug("ABJ_BITESHIP: Request-Level Cache HIT for %s", self.name)
+            pricing = self.env.abj_biteship_req_cache[cache_key]
         else:
-            _logger.debug("ABJ_BITESHIP: Cache MISS for order %s. Fetching total rates...", order.name)
-            pricing = self._abj_fetch_all_biteship_rates(order)
-            if pricing:
-                self._abj_set_biteship_cache(cache_key, pricing)
+            # ── 4. Level 2 Cache: DB (ir.config_parameter) ──
+            cached_data = self._abj_get_biteship_cache(cache_key)
+            
+            if cached_data:
+                _logger.debug("ABJ_BITESHIP: DB Cache HIT for order %s", order.name)
+                pricing = cached_data
+            else:
+                _logger.debug("ABJ_BITESHIP: Cache MISS. Fetching total rates...")
+                pricing = self._abj_fetch_all_biteship_rates(order)
+                if pricing:
+                    self._abj_set_biteship_cache(cache_key, pricing)
+            
+            # Store in Memory for the remainder of this request
+            self.env.abj_biteship_req_cache[cache_key] = pricing
 
         if not pricing:
             return {
@@ -60,7 +75,7 @@ class DeliveryCarrier(models.Model):
                 'warning_message': False,
             }
 
-        # ── 4. Find matching rate for THIS carrier ──
+        # ── 5. Find matching rate for THIS carrier ──
         target_courier = self.abj_biteship_courier_code
         target_service = self._abj_normalize_service_code(self.abj_biteship_service_type)
         
@@ -95,13 +110,9 @@ class DeliveryCarrier(models.Model):
     # ══════════════════════════════════════════════════════════════════════
 
     def _abj_biteship_build_cache_key(self, order):
-        """
-        Build a robust cache key based on route, weight, and transaction state.
-        Format: abj_bs_cache_{origin_zip}_{dest_zip}_{weight_gram}_{amount}
-        """
+        """Build a robust cache key based on route, weight, and transaction state."""
         partner = order.partner_shipping_id or order.partner_id
         
-        # Calculate total weight in grams
         total_weight_gram = sum(
             (line.product_id.weight or 0.1) * line.product_uom_qty * 1000
             for line in order.order_line
@@ -110,15 +121,13 @@ class DeliveryCarrier(models.Model):
         
         origin_zip = order.warehouse_id.partner_id.zip or ''
         dest_zip = partner.zip or ''
-        
-        # Use DB name as prefix to prevent cross-database leakage on multi-tenant servers
         db_name = self.env.cr.dbname
         return f"abj_bs_{db_name}_{origin_zip}_{dest_zip}_{int(total_weight_gram)}_{int(order.amount_total)}"
 
     def _abj_normalize_service_code(self, service_key):
         """Extract 'reg' from 'jne__reg'."""
         if service_key and '__' in service_key:
-            return service_key.split('__')[1]
+            return service_key.split('__')[-1]
         return service_key or ''
 
     def _abj_get_biteship_cache(self, key):
@@ -130,7 +139,6 @@ class DeliveryCarrier(models.Model):
         try:
             data = json.loads(param)
             timestamp = data.get('ts', 0)
-            # Timezone-safe check using Odoo fields.Datetime.now()
             if Datetime.now().timestamp() - timestamp > ABJ_CACHE_TTL:
                 return False
             return data.get('pricing', [])
@@ -138,12 +146,28 @@ class DeliveryCarrier(models.Model):
             return False
 
     def _abj_set_biteship_cache(self, key, pricing):
-        """Store pricing with Odoo-compliant timestamp."""
+        """
+        Store pricing with Odoo-compliant timestamp.
+        Uses UPSERT pattern to avoid IntegrityError (Race Condition).
+        """
+        param_model = self.env['ir.config_parameter'].sudo()
         data = {
             'ts': Datetime.now().timestamp(),
             'pricing': pricing
         }
-        self.env['ir.config_parameter'].sudo().set_param(key, json.dumps(data))
+        val = json.dumps(data)
+        
+        # Pattern: Try searching first to avoid direct create collision
+        existing = param_model.search([('key', '=', key)], limit=1)
+        if existing:
+            existing.write({'value': val})
+        else:
+            try:
+                param_model.create({'key': key, 'value': val})
+            except IntegrityError:
+                # Fallback: Another request created it milliseconds ago
+                self.env.cr.rollback()
+                param_model.search([('key', '=', key)], limit=1).write({'value': val})
 
     def _abj_fetch_all_biteship_rates(self, order):
         """Call core API to fetch ALL available rates."""
