@@ -11,6 +11,123 @@ from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
+# ── Biteship Courier Codes ───────────────────────────────────────────────
+ABJ_BITESHIP_COURIER_CODES = [
+    ('gojek', 'Gojek'),
+    ('grab', 'Grab'),
+    ('deliveree', 'Deliveree'),
+    ('jne', 'JNE'),
+    ('tiki', 'TIKI'),
+    ('ninja', 'Ninja Express'),
+    ('lion', 'Lion Parcel'),
+    ('rara', 'RaRa Delivery'),
+    ('sicepat', 'SiCepat'),
+    ('jnt', 'J&T Express'),
+    ('idexpress', 'ID Express'),
+    ('rpx', 'RPX'),
+    ('jdl', 'JDL Express'),
+    ('wahana', 'Wahana'),
+    ('pos', 'POS Indonesia'),
+    ('anteraja', 'AnterAja'),
+    ('sap', 'SAP Express'),
+    ('paxel', 'Paxel'),
+    ('borzo', 'Borzo'),
+    ('lalamove', 'Lalamove'),
+    ('sentralcargo', 'Sentral Cargo'),
+    ('dash_express', 'Dash Express'),
+]
+
+# ── Biteship Service Types (unique across all couriers) ──────────────────
+ABJ_BITESHIP_SERVICE_TYPES = [
+    # ── Instant / Same Day ──
+    ('instant', 'Instant'),
+    ('same_day', 'Same Day'),
+    ('instant_car', 'Instant Car'),
+    ('instant_bike', 'Instant Bike'),
+    ('SAME_DAY', 'Same Day (Dash Express)'),
+    ('sds', 'Same Day Service (SDS)'),
+    ('q9_same_day', 'Q9 Same Day (POS)'),
+    # ── Regular / Standard ──
+    ('reg', 'Reguler (REG)'),
+    ('standard', 'Standard'),
+    ('normal', 'Normal'),
+    ('ez', 'EZ (J&T)'),
+    # ── Express / Next Day ──
+    ('yes', 'YES – Express Next Day (JNE)'),
+    ('best', 'BEST – Besok Sampai (SiCepat)'),
+    ('ons', 'ONS – One Night Service (TIKI)'),
+    ('one_pack', 'One Pack (Lion)'),
+    ('next_day', 'Next Day'),
+    ('smd', 'Same Day (ID Express)'),
+    # ── Economy ──
+    ('oke', 'OKE – Ongkos Kirim Ekonomis (JNE)'),
+    ('eko', 'EKO – Ekonomi (TIKI)'),
+    ('economy', 'Economy'),
+    ('gokil', 'GOKIL – Kargo (SiCepat)'),
+    ('jumbo_ekonomi', 'Jumbo Ekonomi (POS)'),
+    # ── Trucking / Cargo ──
+    ('jtr', 'JTR – Trucking min 10kg (JNE)'),
+    ('jtr_150', 'JTR 150 – Motor <150CC (JNE)'),
+    ('jtr_250', 'JTR 250 – Motor >250CC (JNE)'),
+    ('jtr_150_250', 'JTR 150-250 – Motor 150-250CC (JNE)'),
+    ('trc', 'Trucking (TIKI)'),
+    ('idtruck', 'ID Truck (ID Express)'),
+    ('cargo', 'Cargo (SAP)'),
+    # ── Motorcycle Shipping ──
+    ('t15', 'Motor <150CC (TIKI)'),
+    ('t25', 'Motor <250CC (TIKI)'),
+    ('t60', 'Motor <600CC (TIKI)'),
+    # ── POS Indonesia ──
+    ('kilat_khusus', 'Kilat Khusus (POS)'),
+    # ── SAP Express ──
+    ('ods', 'ODS – One Day Service (SAP)'),
+    # ── RPX ──
+    ('sdp', 'SDP – Same Day Package (RPX)'),
+    ('mdp', 'MDP – Mid Day Package (RPX)'),
+    ('ndp', 'NDP – Next Day Package (RPX)'),
+    ('rgp', 'RGP – Reguler Package (RPX)'),
+    ('pas', 'PAS – Paket Ambil Suka-suka (RPX)'),
+    ('ecp', 'ECP – Economy Delivery (RPX)'),
+    ('hwp', 'HWP – Heavy Weight (RPX)'),
+    # ── Lion Parcel ──
+    ('reg_pack', 'Reg Pack (Lion)'),
+    ('land_pack', 'Land Pack (Lion)'),
+    ('jago_pack', 'Jago Pack (Lion)'),
+    ('docu_pack', 'Docu Pack (Lion)'),
+    ('big_pack', 'Big Pack (Lion)'),
+    # ── Paxel ──
+    ('small', 'Small Package (Paxel)'),
+    ('medium', 'Medium Package (Paxel)'),
+    ('large', 'Large Package (Paxel)'),
+    ('paxel_big', 'Paxel Big'),
+    # ── Lalamove ──
+    ('motorcycle', 'Motorcycle (Lalamove)'),
+    ('mpv', 'MPV (Lalamove)'),
+    ('truck', 'Truck (Lalamove)'),
+    # ── Deliveree / Lalamove Heavy ──
+    ('van', 'Van'),
+    ('pickup', 'Pickup'),
+    ('small_box', 'Small Box'),
+    ('engkel_box', 'Engkel Box'),
+    ('engkel_pickup', 'Engkel Pickup'),
+    ('engkel_bak', 'Engkel Bak'),
+    ('cdd_box', 'CDD Box'),
+    ('cdd_pickup', 'CDD Pickup'),
+    ('cdd_bak', 'CDD Bak'),
+    ('cde_frozen', 'CDE Frozen'),
+    ('cde_flammable', 'CDE Flammable'),
+    ('cde_chemical', 'CDE Chemical'),
+    ('fuso_light', 'Fuso Lite'),
+    ('fuso_heavy', 'Fuso Heavy'),
+    ('tronton_box', 'Tronton Box'),
+    ('tronton_wing_box', 'Tronton Wing Box'),
+    # ── Sentral Cargo ──
+    ('land_electronic', 'Land Electronic (Sentral)'),
+    ('land_non_electronic', 'Land Non Electronic (Sentral)'),
+    ('air_electronic', 'Air Electronic (Sentral)'),
+    ('air_non_electronic', 'Air Non Electronic (Sentral)'),
+]
+
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
@@ -22,14 +139,16 @@ class DeliveryCarrier(models.Model):
     )
 
     # ── Biteship-specific fields ─────────────────────────────────────────
-    abj_biteship_courier_code = fields.Char(
+    abj_biteship_courier_code = fields.Selection(
+        selection=ABJ_BITESHIP_COURIER_CODES,
         string='Kode Kurir Biteship',
-        help='Kode kurir dari Biteship (e.g., jne, sicepat, anteraja). '
+        help='Pilih kurir dari Biteship.\n'
              'Akan terisi otomatis saat memilih dari wizard tarif.',
     )
-    abj_biteship_service_type = fields.Char(
+    abj_biteship_service_type = fields.Selection(
+        selection=ABJ_BITESHIP_SERVICE_TYPES,
         string='Tipe Layanan Biteship',
-        help='Kode tipe layanan dari Biteship (e.g., reg, oke, yes). '
+        help='Pilih tipe layanan dari Biteship.\n'
              'Akan terisi otomatis saat memilih dari wizard tarif.',
     )
 
@@ -101,9 +220,9 @@ class DeliveryCarrier(models.Model):
                 'value': int(line.price_unit),
                 'weight': weight_gram,
                 'quantity': int(line.product_uom_qty),
-                'length': int(line.product_id.product_length or 10),
-                'width': int(line.product_id.product_width or 10),
-                'height': int(line.product_id.product_height or 10),
+                'length': int(getattr(line.product_id, 'product_length', 0) or 10),
+                'width': int(getattr(line.product_id, 'product_width', 0) or 10),
+                'height': int(getattr(line.product_id, 'product_height', 0) or 10),
             })
 
         if not items:
