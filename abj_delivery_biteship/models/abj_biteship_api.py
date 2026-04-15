@@ -101,10 +101,17 @@ class AbjBiteshipApi(models.AbstractModel):
         """
         config = self._abj_get_config()
         url = f"{config['base_url']}{endpoint}"
+
+        api_key = (config.get('api_key') or '').strip()
+        if not api_key:
+            raise UserError("Biteship API Key belum dikonfigurasi.")
+
+        _logger.info("ABJ_BITESHIP API KEY USED: %s...", api_key[:15])
+
         headers = {
-            'Authorization': config['api_key'],
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'authorization': api_key,
+            'content-type': 'application/json',
+            'accept': 'application/json',
         }
 
         max_attempts = ABJ_MAX_RETRIES if retry else 1
