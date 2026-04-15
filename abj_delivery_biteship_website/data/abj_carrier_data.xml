@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 1. JNE Reguler -->
+        <record id="abj_carrier_jne_reg" model="delivery.carrier">
+            <field name="name">Biteship JNE Reguler</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">jne</field>
+            <field name="abj_biteship_service_type">jne__reg</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">10</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+        <!-- 2. JNE YES (Next Day) -->
+        <record id="abj_carrier_jne_yes" model="delivery.carrier">
+            <field name="name">Biteship JNE YES (Next Day)</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">jne</field>
+            <field name="abj_biteship_service_type">jne__yes</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">11</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+        <!-- 3. SiCepat Reguler -->
+        <record id="abj_carrier_sicepat_reg" model="delivery.carrier">
+            <field name="name">Biteship SiCepat Reguler</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">sicepat</field>
+            <field name="abj_biteship_service_type">sicepat__reg</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">12</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+        <!-- 4. SiCepat BEST -->
+        <record id="abj_carrier_sicepat_best" model="delivery.carrier">
+            <field name="name">Biteship SiCepat BEST</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">sicepat</field>
+            <field name="abj_biteship_service_type">sicepat__best</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">13</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+        <!-- 5. AnterAja Reguler -->
+        <record id="abj_carrier_anteraja_reg" model="delivery.carrier">
+            <field name="name">Biteship AnterAja Reguler</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">anteraja</field>
+            <field name="abj_biteship_service_type">anteraja__reg</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">14</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+        <!-- 6. J&T EZ -->
+        <record id="abj_carrier_jnt_ez" model="delivery.carrier">
+            <field name="name">Biteship J&amp;T EZ</field>
+            <field name="delivery_type">abj_biteship</field>
+            <field name="product_id" ref="delivery.product_product_delivery"/>
+            <field name="abj_biteship_courier_code">jnt</field>
+            <field name="abj_biteship_service_type">jnt__ez</field>
+            <field name="website_published" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="sequence">15</field>
+            <field name="margin">0</field>
+            <field name="company_id" eval="False"/>
+            <field name="integration_level">rate_and_shipment</field>
+        </record>
+
+    </data>
+</odoo>

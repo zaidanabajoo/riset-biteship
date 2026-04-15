@@ -382,3 +382,21 @@ class DeliveryCarrier(models.Model):
                     body='<b>⚠️ Pembatalan Pengiriman</b><br/>'
                          'Silakan batalkan order secara manual di dashboard Biteship.',
                 )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # DELIVERY.CARRIER INTERFACE: send_shipping
+    # ══════════════════════════════════════════════════════════════════════
+
+    def abj_biteship_send_shipping(self, pickings):
+        """
+        Called when the shipment is confirmed to register the delivery
+        cost and tracking number.
+        """
+        self.ensure_one()
+        res = []
+        for picking in pickings:
+            res.append({
+                'exact_price': picking.abj_shipping_cost or 0.0,
+                'tracking_number': picking.abj_tracking_number or '',
+            })
+        return res
